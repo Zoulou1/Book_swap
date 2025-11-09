@@ -4,6 +4,7 @@ import '../../models/book.dart';
 import '../../services/auth_service.dart';
 import '../../services/book_service.dart';
 import '../chat/chat_detail_screen.dart';
+import 'edit_book_screen.dart';
 
 class BookDetailScreen extends StatelessWidget {
   final Book book;
@@ -142,7 +143,86 @@ class BookDetailScreen extends StatelessWidget {
                   const SizedBox(height: 30),
                   
                   // Action Buttons
-                  if (!isMyBook && book.status == 'available') ...[
+                  if (isMyBook) ...[
+                    // Edit and Delete buttons for book owner
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditBookScreen(book: book),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Edit'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFF4B942),
+                              foregroundColor: const Color(0xFF1E2139),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Delete Book'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this book?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                await bookService.deleteBook(book.id);
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Book deleted successfully'),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.delete),
+                            label: const Text('Delete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else if (!isMyBook && book.status == 'available') ...[
                     SizedBox(
                       width: double.infinity,
                       height: 50,
